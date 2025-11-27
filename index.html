@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Skills Dictionary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 10px;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 3px solid #34495e;
+        }
+        .header h1 {
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        .search-box {
+            padding: 10px;
+            background: #ecf0f1;
+            border-bottom: 2px solid #bdc3c7;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            font-size: 13px;
+            border: 1px solid #bdc3c7;
+            border-radius: 0;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 10px;
+            padding: 10px;
+        }
+        .skill-card {
+            background: white;
+            border: 2px solid #34495e;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+        .skill-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        .skill-category {
+            font-size: 0.75em;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .skill-description {
+            font-size: 0.8em;
+            line-height: 1.5;
+            color: #34495e;
+            border-top: 1px solid #ecf0f1;
+            padding-top: 8px;
+        }
+        .no-results {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
+            display: none;
+            font-size: 0.9em;
+        }
+        @media (max-width: 768px) {
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Security Skills Dictionary</h1>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search skills...">
+        </div>
+        
+        <div class="skills-grid" id="skillsList"></div>
+        <div class="no-results" id="noResults">No skills found</div>
+    </div>
+
+    <script>
+        const skills = [
+            {
+                title: "Cloud Platforms - AWS / Azure / GCP",
+                category: "Infrastructure",
+                description: "Expertise in major cloud service providers including Amazon Web Services, Microsoft Azure, and Google Cloud Platform. Involves understanding compute, storage, networking services, and cloud architecture patterns for scalable and resilient systems."
+            },
+            {
+                title: "Identity & Access Management - IAM",
+                category: "Security",
+                description: "Managing digital identities and controlling access to resources. Includes user authentication, authorization, role-based access control (RBAC), single sign-on (SSO), multi-factor authentication (MFA), and least privilege principles."
+            },
+            {
+                title: "Encryption & Data Protection",
+                category: "Security",
+                description: "Securing data at rest and in transit using cryptographic techniques. Covers symmetric/asymmetric encryption, key management, TLS/SSL, data classification, tokenization, and compliance with data protection regulations."
+            },
+            {
+                title: "Infrastructure as Code - Terraform / CloudFormation",
+                category: "Automation",
+                description: "Provisioning and managing infrastructure through code using declarative configuration files. Enables version control, repeatability, and automation of infrastructure deployment across cloud environments."
+            },
+            {
+                title: "Network Security - VPCs / Security Groups / WAFs",
+                category: "Security",
+                description: "Protecting network infrastructure using Virtual Private Clouds, Security Groups, Network ACLs, Web Application Firewalls, and DDoS protection. Includes network segmentation, microsegmentation, and zero-trust architecture."
+            },
+            {
+                title: "Compliance Frameworks - ISO 27001 / NIST / ASD Essential Eight",
+                category: "Governance",
+                description: "Understanding and implementing security standards and regulatory requirements. ISO 27001 for information security management, NIST frameworks for cybersecurity, and Australian ASD Essential Eight mitigation strategies."
+            },
+            {
+                title: "Scripting & Automation - Python / Bash / PowerShell",
+                category: "Automation",
+                description: "Writing scripts to automate security tasks, incident response, configuration management, and reporting. Python for versatile automation, Bash for Linux/Unix systems, PowerShell for Windows environments."
+            },
+            {
+                title: "Monitoring & Logging - CloudWatch / Splunk / Prometheus",
+                category: "Operations",
+                description: "Implementing comprehensive monitoring and logging solutions for security events, performance metrics, and system health. Includes log aggregation, real-time alerting, anomaly detection, and SIEM integration."
+            },
+            {
+                title: "Vulnerability Management & Scanning",
+                category: "Security",
+                description: "Identifying, assessing, and remediating security vulnerabilities in systems and applications. Includes vulnerability scanning tools, penetration testing, patch management, and risk assessment methodologies."
+            },
+            {
+                title: "Certifications - AWS Security / CCSP / CISSP",
+                category: "Professional Development",
+                description: "Industry-recognized security certifications validating expertise. AWS Certified Security Specialty for AWS security, Certified Cloud Security Professional (CCSP) for cloud security, Certified Information Systems Security Professional (CISSP) for comprehensive security knowledge."
+            },
+            {
+                title: "Container Security - Docker / Kubernetes",
+                category: "Security",
+                description: "Securing containerized applications and orchestration platforms. Includes image scanning, runtime protection, pod security policies, network policies, secrets management, and container isolation techniques."
+            },
+            {
+                title: "Cloud Security Posture Management - CSPM",
+                category: "Security",
+                description: "Continuous monitoring and assessment of cloud infrastructure for misconfigurations and compliance violations. Automates security checks across multi-cloud environments to identify and remediate risks."
+            },
+            {
+                title: "Zero Trust Architecture",
+                category: "Security",
+                description: "Security model based on never trust, always verify principle. Implements micro-segmentation, continuous verification, least privilege access, and assumes breach mentality for all network traffic and users."
+            },
+            {
+                title: "API Security & Management",
+                category: "Security",
+                description: "Protecting application programming interfaces from attacks and misuse. Covers API gateways, rate limiting, authentication/authorization, input validation, encryption, and API threat detection."
+            },
+            {
+                title: "Secrets Management - Vault / KMS",
+                category: "Security",
+                description: "Secure storage and access control for sensitive data like passwords, API keys, and certificates. Tools include HashiCorp Vault, AWS KMS, Azure Key Vault for encryption key management and rotation."
+            },
+            {
+                title: "Incident Response & Forensics",
+                category: "Operations",
+                description: "Procedures for detecting, responding to, and recovering from security incidents. Includes threat hunting, digital forensics, breach containment, root cause analysis, and disaster recovery planning."
+            },
+            {
+                title: "Cloud Workload Protection - CWPP",
+                category: "Security",
+                description: "Security solutions for protecting workloads across VMs, containers, and serverless functions. Provides vulnerability management, runtime protection, and behavioral monitoring for cloud workloads."
+            },
+            {
+                title: "Data Loss Prevention - DLP",
+                category: "Security",
+                description: "Technologies and policies to prevent unauthorized data exfiltration. Monitors and controls data movement across endpoints, networks, and cloud services to protect sensitive information."
+            },
+            {
+                title: "Security Information & Event Management - SIEM",
+                category: "Operations",
+                description: "Centralized platform for collecting, analyzing, and responding to security events. Provides real-time threat detection, log management, compliance reporting, and security incident correlation."
+            },
+            {
+                title: "DevSecOps & CI/CD Security",
+                category: "Automation",
+                description: "Integrating security practices into development and deployment pipelines. Includes SAST/DAST scanning, dependency checking, automated security testing, and shift-left security approach."
+            },
+            {
+                title: "Cloud Native Security",
+                category: "Security",
+                description: "Security practices for cloud-native applications and microservices. Covers service mesh security, serverless security, ephemeral infrastructure protection, and cloud-native threat modeling."
+            },
+            {
+                title: "Threat Intelligence & Hunting",
+                category: "Operations",
+                description: "Proactive identification and analysis of cyber threats. Uses threat feeds, indicators of compromise (IOCs), MITRE ATT&CK framework, and behavioral analytics to detect advanced persistent threats."
+            },
+            {
+                title: "Backup & Disaster Recovery",
+                category: "Operations",
+                description: "Strategies for data protection and business continuity. Includes backup automation, point-in-time recovery, replication strategies, RTO/RPO objectives, and disaster recovery testing."
+            },
+            {
+                title: "Multi-Cloud & Hybrid Security",
+                category: "Infrastructure",
+                description: "Managing security across multiple cloud providers and on-premises environments. Unified security policies, cross-cloud identity management, and consistent compliance across platforms."
+            },
+            {
+                title: "Serverless Security - Lambda / Functions",
+                category: "Security",
+                description: "Securing serverless computing environments. Function-level permissions, event-driven security, cold start vulnerabilities, dependency management, and serverless application firewall configuration."
+            },
+            {
+                title: "Cloud Cost Optimization & FinOps",
+                category: "Governance",
+                description: "Managing cloud spending and resource efficiency. Cost allocation, resource tagging, rightsizing recommendations, reserved instances, and financial accountability in cloud operations."
+            },
+            {
+                title: "Security Orchestration & Automation - SOAR",
+                category: "Automation",
+                description: "Automated security incident response and threat mitigation. Playbook automation, case management, threat intelligence integration, and coordinated response across security tools."
+            },
+            {
+                title: "Penetration Testing & Red Teaming",
+                category: "Security",
+                description: "Simulated attacks to identify security weaknesses. Ethical hacking, social engineering, attack simulation, adversary emulation, and security control validation through offensive security."
+            },
+            {
+                title: "Cloud Migration Security",
+                category: "Infrastructure",
+                description: "Security considerations during cloud adoption. Migration planning, legacy system protection, data transfer security, application refactoring, and post-migration validation."
+            },
+            {
+                title: "Privileged Access Management - PAM",
+                category: "Security",
+                description: "Controlling and monitoring privileged user accounts. Just-in-time access, session recording, credential vaulting, privileged session management, and administrative access controls."
+            },
+            {
+                title: "Cloud Governance & Risk Management",
+                category: "Governance",
+                description: "Frameworks for cloud security governance. Risk assessment, security policies, cloud security architecture review, third-party risk management, and security control frameworks."
+            },
+            {
+                title: "Endpoint Detection & Response - EDR",
+                category: "Security",
+                description: "Advanced endpoint security monitoring. Real-time threat detection, behavioral analysis, automated response, forensic investigation capabilities, and endpoint visibility across infrastructure."
+            },
+            {
+                title: "Security Awareness & Training",
+                category: "Governance",
+                description: "Educating users on security best practices. Phishing simulations, security policies communication, insider threat awareness, secure coding training, and security culture development."
+            },
+            {
+                title: "Cloud Access Security Broker - CASB",
+                category: "Security",
+                description: "Security policy enforcement for cloud services. Shadow IT discovery, data loss prevention, threat protection, and compliance monitoring for SaaS applications and cloud services."
+            },
+            {
+                title: "Threat Modeling & Risk Assessment",
+                category: "Governance",
+                description: "Systematic identification of security threats. STRIDE methodology, attack trees, risk scoring, security architecture review, and proactive vulnerability identification."
+            },
+            {
+                title: "Database Security & Encryption",
+                category: "Security",
+                description: "Protecting databases in cloud environments. Database encryption, SQL injection prevention, access control policies, database activity monitoring, and secure database configuration."
+            },
+            {
+                title: "Load Balancing & Traffic Management",
+                category: "Infrastructure",
+                description: "Distributing traffic securely across resources. Application load balancers, network load balancers, SSL/TLS termination, health checks, and DDoS mitigation at load balancer level."
+            },
+            {
+                title: "Cloud Storage Security - S3 / Blob / GCS",
+                category: "Security",
+                description: "Securing object storage and file systems. Bucket policies, access control lists, encryption at rest, versioning, lifecycle policies, and preventing data exposure through misconfiguration."
+            },
+            {
+                title: "Service Mesh - Istio / Linkerd",
+                category: "Infrastructure",
+                description: "Managing microservices communication security. Service-to-service authentication, traffic encryption, observability, circuit breaking, and fine-grained access control between services."
+            },
+            {
+                title: "Security Baselines & Hardening",
+                category: "Security",
+                description: "Establishing secure system configurations. CIS benchmarks, OS hardening, application hardening, default password changes, unnecessary service removal, and secure configuration standards."
+            },
+            {
+                title: "Change Management & Configuration Control",
+                category: "Governance",
+                description: "Tracking and controlling infrastructure changes. Change approval workflows, configuration drift detection, rollback procedures, audit trails, and automated compliance checking."
+            },
+            {
+                title: "Firewall Management - Network / Application",
+                category: "Security",
+                description: "Managing cloud firewalls and security policies. Stateful inspection, rule optimization, next-generation firewalls, application-layer filtering, and geo-blocking capabilities."
+            },
+            {
+                title: "DNS Security - Route53 / Cloud DNS",
+                category: "Security",
+                description: "Protecting domain name systems. DNSSEC implementation, DNS filtering, DDoS protection, DNS query logging, and preventing DNS hijacking and cache poisoning attacks."
+            },
+            {
+                title: "VPN & Private Connectivity",
+                category: "Infrastructure",
+                description: "Secure remote access and private connections. Site-to-site VPN, client VPN, Direct Connect, ExpressRoute, Cloud Interconnect, and encrypted tunneling protocols."
+            },
+            {
+                title: "Cloud Security Architecture",
+                category: "Infrastructure",
+                description: "Designing secure cloud solutions. Security by design, defense in depth, landing zones, well-architected frameworks, reference architectures, and security pattern implementation."
+            },
+            {
+                title: "Mobile Device Management - MDM",
+                category: "Security",
+                description: "Managing and securing mobile endpoints. Device enrollment, app management, remote wipe, compliance policies, containerization, and mobile threat defense integration."
+            },
+            {
+                title: "Blockchain & Distributed Ledger Security",
+                category: "Security",
+                description: "Securing blockchain implementations. Smart contract security, consensus mechanism protection, private key management, node security, and distributed application security."
+            },
+            {
+                title: "IoT & Edge Security",
+                category: "Security",
+                description: "Protecting Internet of Things and edge devices. Device authentication, firmware updates, secure boot, edge computing security, and IoT protocol protection."
+            },
+            {
+                title: "Security Metrics & Reporting",
+                category: "Governance",
+                description: "Measuring security program effectiveness. KPIs, security dashboards, executive reporting, trend analysis, mean time to detect/respond, and compliance status tracking."
+            },
+            {
+                title: "Business Continuity Planning - BCP",
+                category: "Operations",
+                description: "Ensuring operational resilience. Business impact analysis, continuity strategies, failover testing, crisis management, and maintaining critical functions during disruptions."
+            },
+            {
+                title: "Cloud Forensics & Investigation",
+                category: "Operations",
+                description: "Investigating security incidents in cloud. Evidence collection, chain of custody, log analysis, memory forensics, snapshot analysis, and cloud-specific investigation techniques."
+            },
+            {
+                title: "Software Composition Analysis - SCA",
+                category: "Security",
+                description: "Identifying vulnerabilities in open-source dependencies. License compliance, vulnerability detection in third-party libraries, dependency tracking, and supply chain security."
+            },
+            {
+                title: "Runtime Application Protection - RASP",
+                category: "Security",
+                description: "Real-time application security. Self-protecting applications, attack detection during execution, automatic threat blocking, and context-aware security within applications."
+            },
+            {
+                title: "Security Testing - SAST / DAST / IAST",
+                category: "Security",
+                description: "Automated application security testing. Static analysis, dynamic testing, interactive testing, code review automation, and vulnerability discovery in software development lifecycle."
+            },
+            {
+                title: "Network Traffic Analysis - NTA",
+                category: "Operations",
+                description: "Monitoring and analyzing network communications. Packet inspection, flow analysis, anomaly detection, lateral movement detection, and identifying suspicious network behavior."
+            },
+            {
+                title: "Cloud-Native Application Protection - CNAPP",
+                category: "Security",
+                description: "Unified security platform for cloud-native apps. Combines CSPM, CWPP, CIEM, and other tools for comprehensive cloud security across development and runtime environments."
+            },
+            {
+                title: "Cloud Infrastructure Entitlement Management - CIEM",
+                category: "Security",
+                description: "Managing excessive permissions in cloud. Identity risk analysis, unused permission removal, cross-account access review, and least privilege enforcement automation."
+            },
+            {
+                title: "Microsegmentation & Network Isolation",
+                category: "Security",
+                description: "Granular network security controls. Workload-level segmentation, software-defined perimeters, east-west traffic filtering, and reducing attack surface through isolation."
+            },
+            {
+                title: "Security Automation & Orchestration",
+                category: "Automation",
+                description: "Automating repetitive security tasks. Security workflow automation, API-driven security controls, infrastructure security as code, and reducing manual security operations."
+            },
+            {
+                title: "Cloud Security Standards & Best Practices",
+                category: "Governance",
+                description: "Industry security guidelines. Cloud Security Alliance (CSA) controls, AWS Well-Architected, Azure Security Benchmark, GCP Security Best Practices, and shared responsibility model."
+            },
+            {
+                title: "Regulatory Compliance - GDPR / HIPAA / PCI-DSS",
+                category: "Governance",
+                description: "Meeting legal and industry requirements. Data privacy regulations, healthcare security standards, payment card security, audit preparation, and compliance automation tools."
+            },
+            {
+                title: "Patch Management & Updates",
+                category: "Operations",
+                description: "Maintaining system security through updates. Automated patching, vulnerability remediation prioritization, patch testing, rollback procedures, and update compliance tracking."
+            },
+            {
+                title: "Authentication Protocols - OAuth / SAML / OIDC",
+                category: "Security",
+                description: "Modern authentication and authorization. OAuth 2.0, SAML federation, OpenID Connect, JWT tokens, and secure delegation of access across systems and services."
+            },
+            {
+                title: "Cloud Security Training & Certification",
+                category: "Professional Development",
+                description: "Continuous learning in cloud security. CEH, CompTIA Security+, GIAC certifications, vendor-specific training, security conference participation, and staying current with threats."
+            },
+            {
+                title: "Email Security & Anti-Phishing",
+                category: "Security",
+                description: "Protecting email communications. SPF, DKIM, DMARC implementation, email filtering, phishing detection, email encryption, and security awareness for social engineering attacks."
+            },
+            {
+                title: "Shadow IT Discovery & Management",
+                category: "Governance",
+                description: "Identifying unauthorized cloud usage. Cloud app discovery, unsanctioned service monitoring, risk assessment of shadow IT, and bringing rogue applications under governance."
+            },
+            {
+                title: "Security Architecture Review - SAR",
+                category: "Governance",
+                description: "Evaluating system security design. Threat modeling, architecture assessment, security control validation, design pattern review, and identifying architectural vulnerabilities."
+            },
+            {
+                title: "Quantum-Safe Cryptography",
+                category: "Security",
+                description: "Preparing for quantum computing threats. Post-quantum algorithms, crypto-agility, quantum-resistant encryption, and future-proofing cryptographic implementations."
+            },
+            {
+                title: "Cloud Security Auditing",
+                category: "Governance",
+                description: "Systematic security assessment. Internal audits, third-party assessments, SOC 2 compliance, penetration test coordination, and remediation tracking."
+            },
+            {
+                title: "Web Application Firewall - WAF Configuration",
+                category: "Security",
+                description: "Protecting web applications from attacks. OWASP Top 10 mitigation, custom rule creation, bot management, rate limiting, and geo-blocking at application layer."
+            },
+            {
+                title: "Cloud Security Monitoring Tools",
+                category: "Operations",
+                description: "Security monitoring platforms. GuardDuty, Security Hub, Azure Sentinel, Google Security Command Center, and unified threat detection across cloud environments."
+            },
+            {
+                title: "Intrusion Detection & Prevention - IDS / IPS",
+                category: "Security",
+                description: "Detecting and blocking malicious activity. Signature-based detection, anomaly detection, inline traffic inspection, automated threat blocking, and alert management."
+            },
+            {
+                title: "Cloud Asset Management & Inventory",
+                category: "Operations",
+                description: "Tracking cloud resources and dependencies. Asset discovery, configuration management database (CMDB), resource tagging strategies, and maintaining accurate inventory for security."
+            },
+            {
+                title: "Machine Learning Security - MLSecOps",
+                category: "Security",
+                description: "Securing ML models and pipelines. Model poisoning prevention, adversarial attack protection, training data security, model versioning, and AI/ML infrastructure security."
+            },
+            {
+                title: "Cloud Billing & Usage Monitoring",
+                category: "Governance",
+                description: "Tracking cloud consumption and costs. Anomaly detection in spending, resource utilization monitoring, cost allocation tags, budget alerts, and identifying security incidents through billing."
+            },
+            {
+                title: "Cross-Region Replication Security",
+                category: "Infrastructure",
+                description: "Securing data across geographic regions. Encrypted replication, cross-region access controls, data residency compliance, and disaster recovery across regions."
+            },
+            {
+                title: "Log Retention & Archival Policies",
+                category: "Governance",
+                description: "Managing security logs long-term. Retention requirements, cold storage strategies, log compression, audit trail preservation, and compliance with data retention regulations."
+            },
+            {
+                title: "Security Token Service - STS",
+                category: "Security",
+                description: "Temporary credential management. Federated access, assume role permissions, short-lived tokens, session management, and secure delegation of AWS/cloud permissions."
+            },
+            {
+                title: "Content Delivery Network - CDN Security",
+                category: "Security",
+                description: "Securing edge content distribution. DDoS mitigation at edge, SSL/TLS termination, bot protection, cache poisoning prevention, and origin server protection."
+            },
+            {
+                title: "Infrastructure Monitoring - Datadog / New Relic",
+                category: "Operations",
+                description: "Comprehensive infrastructure observability. Performance monitoring, APM integration, security event correlation, distributed tracing, and real-time infrastructure visibility."
+            },
+            {
+                title: "Secrets Rotation & Management Automation",
+                category: "Automation",
+                description: "Automated credential lifecycle management. Automatic password rotation, certificate renewal, API key cycling, zero-touch secret updates, and eliminating hardcoded credentials."
+            },
+            {
+                title: "Cloud Configuration Management - Ansible / Chef / Puppet",
+                category: "Automation",
+                description: "Infrastructure configuration as code. Configuration drift prevention, compliance enforcement, automated remediation, idempotent configurations, and centralized policy management."
+            },
+            {
+                title: "Security Champions Program",
+                category: "Governance",
+                description: "Embedding security in development teams. Security advocate training, peer security reviews, security culture building, and distributed security responsibility across organization."
+            },
+            {
+                title: "Cloud Access Policies & Conditional Access",
+                category: "Security",
+                description: "Context-aware access controls. Device compliance checks, location-based access, risk-based authentication, session controls, and adaptive access policies based on behavior."
+            },
+            {
+                title: "Threat Detection Engineering",
+                category: "Operations",
+                description: "Building custom security detections. Detection rule development, false positive reduction, threat hunting queries, correlation rules, and SIEM content engineering."
+            },
+            {
+                title: "File Integrity Monitoring - FIM",
+                category: "Security",
+                description: "Detecting unauthorized file changes. Critical file monitoring, baseline configuration, change alerting, compliance verification, and detecting rootkits and malware."
+            },
+            {
+                title: "Cloud Provider Security APIs",
+                category: "Automation",
+                description: "Programmatic security control. AWS Security Hub API, Azure Security API, GCP Security Command Center API, automated security operations, and custom security tooling."
+            },
+            {
+                title: "Secure Software Supply Chain",
+                category: "Security",
+                description: "Protecting development pipeline. Artifact signing, dependency verification, build provenance, SBOM generation, and preventing supply chain attacks in CI/CD."
+            },
+            {
+                title: "Security Operations Center - SOC",
+                category: "Operations",
+                description: "Centralized security monitoring and response. 24/7 threat monitoring, incident triage, escalation procedures, playbook execution, and coordinated security operations."
+            },
+            {
+                title: "Cloud Security Alliance - CSA Controls",
+                category: "Governance",
+                description: "Industry security framework implementation. CCM controls, STAR certification, CAIQ assessment, best practice alignment, and cloud security maturity measurement."
+            },
+            {
+                title: "Managed Security Service Provider - MSSP",
+                category: "Operations",
+                description: "Outsourced security operations. Third-party SOC services, managed detection and response (MDR), security monitoring outsourcing, and vendor security management."
+            },
+            {
+                title: "Security Baseline Scanning - CIS / DISA STIG",
+                category: "Security",
+                description: "Automated compliance checking. CIS benchmark scanning, STIG compliance validation, security configuration assessment, and automated hardening verification."
+            },
+            {
+                title: "Virtual Private Cloud - VPC Design",
+                category: "Infrastructure",
+                description: "Building isolated network environments. Subnet design, CIDR planning, routing tables, internet gateways, NAT gateways, and network segmentation strategies."
+            },
+            {
+                title: "Security Groups & Network ACLs",
+                category: "Security",
+                description: "Firewall rules for cloud resources. Inbound/outbound traffic control, stateful vs stateless rules, rule prioritization, default deny policies, and micro-segmentation."
+            },
+            {
+                title: "Multi-Factor Authentication - MFA / 2FA",
+                category: "Security",
+                description: "Enhancing account security with multiple factors. Hardware tokens, software authenticators, biometric verification, SMS codes, and passwordless authentication methods."
+            },
+            {
+                title: "Access Control Lists - ACLs",
+                category: "Security",
+                description: "Fine-grained permission management. Resource-level permissions, user/group access control, deny/allow rules, inheritance models, and permission boundaries."
+            },
+            {
+                title: "Cloud Migration Strategies - 6Rs",
+                category: "Infrastructure",
+                description: "Approaches to cloud adoption. Rehost, replatform, repurchase, refactor, retire, retain strategies, and security considerations for each migration pattern."
+            },
+            {
+                title: "Disaster Recovery Planning - DRP",
+                category: "Operations",
+                description: "Preparing for catastrophic failures. DR sites, failover procedures, recovery time objectives, recovery point objectives, and regular DR testing."
+            },
+            {
+                title: "High Availability & Fault Tolerance",
+                category: "Infrastructure",
+                description: "Building resilient systems. Multi-AZ deployments, auto-scaling, health checks, redundancy design, load balancing, and eliminating single points of failure."
+            },
+            {
+                title: "Cloud Resource Tagging Strategy",
+                category: "Governance",
+                description: "Organizing cloud resources. Cost allocation tags, ownership tags, environment tags, compliance tags, automation tags, and enforcing tagging policies."
+            },
+            {
+                title: "Single Sign-On - SSO Implementation",
+                category: "Security",
+                description: "Unified authentication experience. SAML/OAuth integration, identity provider configuration, user provisioning, centralized access management, and reducing password fatigue."
+            },
+            {
+                title: "API Gateway Security",
+                category: "Security",
+                description: "Protecting API endpoints. API keys, throttling, request validation, CORS configuration, authorization, and protecting backend services from direct access."
+            },
+            {
+                title: "Cloud Service Level Agreements - SLAs",
+                category: "Governance",
+                description: "Understanding cloud provider guarantees. Uptime commitments, performance metrics, support response times, security responsibilities, and credit policies."
+            },
+            {
+                title: "Cloud Cost Management Tools",
+                category: "Governance",
+                description: "Optimizing cloud spending. AWS Cost Explorer, Azure Cost Management, GCP Cost Tools, rightsizing recommendations, and unused resource identification."
+            },
+            {
+                title: "Database Backup & Recovery",
+                category: "Operations",
+                description: "Protecting database integrity. Automated backups, point-in-time recovery, snapshot management, backup encryption, cross-region backup replication."
+            },
+            {
+                title: "SSL/TLS Certificate Management",
+                category: "Security",
+                description: "Managing encryption certificates. Certificate issuance, renewal automation, private key protection, certificate pinning, and monitoring certificate expiration."
+            },
+            {
+                title: "Cloud Security Training Materials",
+                category: "Professional Development",
+                description: "Learning resources for cloud security. Online courses, hands-on labs, security workshops, webinars, documentation, and practical security exercises."
+            },
+            {
+                title: "Security Incident Playbooks",
+                category: "Operations",
+                description: "Documented response procedures. Step-by-step incident handling, escalation paths, communication templates, containment strategies, and post-incident review."
+            },
+            {
+                title: "Cloud Provider Shared Responsibility Model",
+                category: "Governance",
+                description: "Understanding security ownership. Provider vs customer responsibilities, security of the cloud vs security in the cloud, and compliance implications."
+            },
+            {
+                title: "Root Account Protection",
+                category: "Security",
+                description: "Securing administrative access. MFA enforcement, access key deletion, root account monitoring, minimal root usage, and alternate contact configuration."
+            },
+            {
+                title: "Cloud Security Maturity Model",
+                category: "Governance",
+                description: "Measuring security program progress. Maturity levels assessment, capability measurement, gap analysis, roadmap development, and continuous improvement tracking."
+            },
+            {
+                title: "Identity Federation & Trust",
+                category: "Security",
+                description: "Cross-domain authentication. SAML federation, Active Directory integration, trust relationships, external identity providers, and seamless cross-platform access."
+            },
+            {
+                title: "Cloud Elasticity & Auto-Scaling",
+                category: "Infrastructure",
+                description: "Dynamic resource adjustment. Auto-scaling policies, scaling triggers, capacity planning, cost optimization through scaling, and handling traffic spikes securely."
+            },
+            {
+                title: "Security Logging Best Practices",
+                category: "Operations",
+                description: "Effective log management. Log centralization, structured logging, log retention periods, sensitive data masking, and maintaining audit trails."
+            },
+            {
+                title: "Cloud Firewall Rules Management",
+                category: "Security",
+                description: "Maintaining firewall policies. Rule documentation, periodic review, unused rule cleanup, rule testing, and preventing rule sprawl."
+            },
+            {
+                title: "Network Segmentation Strategies",
+                category: "Security",
+                description: "Dividing networks for security. DMZ configuration, internal network isolation, production/non-production separation, and reducing blast radius."
+            },
+            {
+                title: "Cloud Native Tools & Services",
+                category: "Infrastructure",
+                description: "Leveraging provider-native capabilities. Managed services adoption, serverless computing, platform services, and reducing operational overhead."
+            },
+            {
+                title: "Security Risk Register Management",
+                category: "Governance",
+                description: "Tracking security risks. Risk identification, likelihood/impact assessment, mitigation plans, risk ownership, and regular risk review processes."
+            },
+            {
+                title: "Compliance Audit Preparation",
+                category: "Governance",
+                description: "Getting ready for audits. Evidence collection, documentation organization, control testing, gap remediation, and auditor coordination."
+            },
+            {
+                title: "Cloud Provider Service Limits",
+                category: "Infrastructure",
+                description: "Understanding resource constraints. API rate limits, service quotas, limit increase requests, monitoring quota usage, and planning for limits."
+            },
+            {
+                title: "Security Assessment Questionnaires - SAQ",
+                category: "Governance",
+                description: "Vendor security evaluation. Third-party risk assessment, questionnaire completion, evidence validation, and continuous vendor monitoring."
+            },
+            {
+                title: "Cloud Billing Alerts & Budgets",
+                category: "Governance",
+                description: "Preventing cost overruns. Budget creation, threshold alerts, forecasting, anomaly detection, and proactive cost management."
+            },
+            {
+                title: "Application Performance Monitoring - APM",
+                category: "Operations",
+                description: "Tracking app health and performance. Transaction tracing, error tracking, performance bottlenecks, user experience monitoring, and correlation with security events."
+            },
+            {
+                title: "Cloud Provider Status Pages",
+                category: "Operations",
+                description: "Monitoring service health. Provider outage tracking, planned maintenance awareness, incident notifications, and impact assessment."
+            },
+            {
+                title: "Security Control Testing",
+                category: "Governance",
+                description: "Validating security measures. Control effectiveness testing, automated testing, penetration testing, red team exercises, and control gap identification."
+            },
+            {
+                title: "Cloud Resource Lifecycle Management",
+                category: "Operations",
+                description: "Managing resource from creation to deletion. Provisioning automation, decommissioning procedures, orphaned resource cleanup, and lifecycle policies."
+            },
+            {
+                title: "Security Documentation Standards",
+                category: "Governance",
+                description: "Maintaining security records. Policy documentation, procedure guides, architecture diagrams, runbooks, and knowledge base management."
+            },
+            {
+                title: "Cloud Region Selection Strategy",
+                category: "Infrastructure",
+                description: "Choosing deployment locations. Latency considerations, data residency laws, disaster recovery planning, cost differences, and service availability."
+            },
+            {
+                title: "Bastion Hosts & Jump Servers",
+                category: "Security",
+                description: "Secure access gateways. Hardened access points, session logging, MFA enforcement, minimal attack surface, and controlled administrative access."
+            },
+            {
+                title: "Cloud Security Newsletter & Updates",
+                category: "Professional Development",
+                description: "Staying current with threats. Security bulletins, vendor advisories, vulnerability announcements, patch notifications, and industry news monitoring."
+            },
+            {
+                title: "Reserved Instances & Savings Plans",
+                category: "Governance",
+                description: "Long-term cost optimization. Commitment-based discounts, usage analysis, reservation planning, and balancing cost with flexibility."
+            },
+            {
+                title: "Cloud Scheduler & Automation",
+                category: "Automation",
+                description: "Time-based task execution. Scheduled security scans, automated backups, periodic compliance checks, and resource management automation."
+            },
+            {
+                title: "Security Headers & HTTPS Enforcement",
+                category: "Security",
+                description: "Protecting web applications. HSTS, CSP, X-Frame-Options, cookie security, HTTPS redirection, and browser security features."
+            },
+            {
+                title: "Cloud Support Plans & TAM",
+                category: "Operations",
+                description: "Leveraging provider support. Support tier selection, technical account managers, architectural guidance, and incident prioritization."
+            },
+            {
+                title: "Infrastructure Diagrams & Documentation",
+                category: "Governance",
+                description: "Visual system representation. Network topology, data flow diagrams, architecture blueprints, keeping docs current, and disaster recovery reference."
+            }
+        ];
+
+        const skillsList = document.getElementById('skillsList');
+        const searchInput = document.getElementById('searchInput');
+        const noResults = document.getElementById('noResults');
+
+        function renderSkills(filteredSkills) {
+            skillsList.innerHTML = '';
+            
+            if (filteredSkills.length === 0) {
+                noResults.style.display = 'block';
+                return;
+            }
+            
+            noResults.style.display = 'none';
+            
+            filteredSkills.forEach((skill, index) => {
+                const skillCard = document.createElement('div');
+                skillCard.className = 'skill-card';
+                skillCard.innerHTML = `
+                    <div class="skill-title">${skill.title}</div>
+                    <div class="skill-category">${skill.category}</div>
+                    <div class="skill-description">${skill.description}</div>
+                `;
+                
+                skillsList.appendChild(skillCard);
+            });
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = skills.filter(skill => 
+                skill.title.toLowerCase().includes(searchTerm) ||
+                skill.category.toLowerCase().includes(searchTerm) ||
+                skill.description.toLowerCase().includes(searchTerm)
+            );
+            renderSkills(filtered);
+        });
+
+        renderSkills(skills);
+    </script>
+</body>
+</html>
